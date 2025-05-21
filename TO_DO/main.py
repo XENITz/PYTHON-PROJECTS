@@ -1,12 +1,18 @@
 import os
+import json
+import ast
+
+"""HAY QUE CAMBIAR TODA LA LOGICA Y AGREGARLE UN ID A CADA TASK
+    QUE HAY EN EL DICCIONARIO, DE OTRA MANERA NO FUNCIONARA"""
+
 #OPEN THE FILE AND LOAD THE DICTIONARY
 with open("tasks.txt", "r") as f:
     file_content = f.read().strip()
     if not file_content:
         task_dict = {}
     else: 
-        task_dict = eval(file_content)
-
+        task_dict = ast.literal_eval(file_content)
+        
 """CLEAR THE CLI"""
 def clear_cli():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -18,9 +24,10 @@ def add_task():
     while True:
         task = input("PLEASE ADD THE TASK: ")
         description = input("PLEASE ADD THE DESCRIPTION: ")
-    
+        id = 1
         #ADD TASKS AND DESCRIPTION TO DICTIONARY
-        tasks = {"description": description,
+        tasks = {"task" : task,
+            "description": description,
                  "status": False}
         task_dict[task] = tasks
         print(f"TASK: {task} - {description}")
@@ -63,10 +70,10 @@ def mark_task():
     print(f"TASK: {task_to_mark} - [X]")
 
 """DELETE TASKS FROM THE DICTIONARY"""
-def delete_task(task):
+def delete_task():
     #PARSE THE TASKS FROM THE DICTIONARY
     print("====TASKS====")
-    for index, value in enumarate(task_dict):
+    for index, value in enumerate(task_dict):
         if task_dict[value]["status"] == True:
             print(f"{index + 1}. [X] {value}")
         else:
@@ -74,7 +81,8 @@ def delete_task(task):
 
     #ASK USER WHICH TASK TO DELETE
     task_to_delete = int(input("PLEASE ENTER THE TASK NUMBER TO DELETE: "))
-    del task_dict[task_to_delete - 1]
+    delete = task_dict[task_to_delete - 1]
+    del task_dict[delete]
     print("TASK DELETED SUCCESSFULLY")
 
                   

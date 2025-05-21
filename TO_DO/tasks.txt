@@ -1,1 +1,1 @@
-{'run': {'description': 'running', 'status': False}}
+{'run': {'description': 'running', 'status': False}, 'Ir al bano': {'description': 'a sacar dinero', 'status': False}}
