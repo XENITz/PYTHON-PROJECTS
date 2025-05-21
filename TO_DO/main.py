@@ -1,10 +1,11 @@
 import os
 #OPEN THE FILE AND LOAD THE DICTIONARY
 with open("tasks.txt", "r") as f:
-    if f.read() == "":
+    file_content = f.read().strip()
+    if not file_content:
         task_dict = {}
     else: 
-        task_dict = eval(f.read())
+        task_dict = eval(file_content)
 
 """CLEAR THE CLI"""
 def clear_cli():
