@@ -1,6 +1,7 @@
 import os
 import json
 import ast
+import time
 
 """HAY QUE CAMBIAR TODA LA LOGICA Y AGREGARLE UN ID A CADA TASK
     QUE HAY EN EL DICCIONARIO, DE OTRA MANERA NO FUNCIONARA"""
@@ -19,23 +20,27 @@ def clear_cli():
 
 """ADD TASKS TO THE DICTIONARY"""
 def add_task():
+    #LET USER ADD TASKS AND DESCRIPTION 
     print("====ADD TASK====")
-   #LET USER ADD TASKS AND DESCRIPTION 
+    id = 1
     while True:
+        
+        
         task = input("PLEASE ADD THE TASK: ")
         description = input("PLEASE ADD THE DESCRIPTION: ")
-        id = 1
+        
         #ADD TASKS AND DESCRIPTION TO DICTIONARY
         tasks = {"task" : task,
-            "description": description,
-                 "status": False}
-        task_dict[task] = tasks
+                "description": description,
+                "status": False}
+        task_dict[id] = tasks
         print(f"TASK: {task} - {description}")
         print("TASK ADDED SUCCESSFULLY")
-    
+        
+        print(task_dict)
         #ASK USER IF THEY WANT TO ADD ANOTHER TASK
         add_another = input("DO YOU WANT TO ADD ANOTHER TASK? (Y/N): ")
-
+        id += 1
     #IF USER WANTS TO ADD ANOTHER TASK, CALL THE FUNCTION AGAIN
         if add_another.upper() != "Y":
             print("TASKS SAVED SUCCESSFULLY")
@@ -46,12 +51,15 @@ def add_task():
 """VIEW TASKS FROM THE DICTIONARY"""
 def view_tasks():
     #PARSE THE TASKS FROM THE DICTIONARY
+    clear_cli()
     print("====TASKS====")
     for index, value in enumerate(task_dict):
         if task_dict[value]["status"] == True:
-            print(f"{index + 1}. [x] {value} - {task_dict[value]['description']}")
+            print(f"{index + 1}. [x] {task_dict[value]['task']} - {task_dict[value]['description']}")
         else:
-            print(f"{index + 1}. [ ] {value} - {task_dict[value]['description']}")
+            print(f"{index + 1}. [ ] {task_dict[value]['task']} - {task_dict[value]['description']}")
+    time.sleep(15)
+
 
 """MARK TASKS AS COMPLETED"""
 def mark_task():
@@ -60,32 +68,38 @@ def mark_task():
     print("====TASKS====")
     for index, value in enumerate(task_dict):
         if task_dict[value]["status"] == True:
-            print(f"{index + 1}. [X] {value}")
+            print(f"{index + 1}. [x] {task_dict[value]['task']}")
         else:
-            print(f"{index + 1}. [ ] {value}")
+            print(f"{index + 1}. [ ] {task_dict[value]['task']}")
         
     #ASK USER WHICH TASK TO MARK AS COMPLETED
     task_to_mark = int(input("PLEASE ENTER THE TASK NUMBER TO MARK AS COMPLETED: "))
-    task_dict[task_to_mark - 1]["status"] = True
-    print(f"TASK: {task_to_mark} - [X]")
+    task_dict[task_to_mark]["status"] = True
+    print(f"TASK: {task_dict[task_to_mark]["task"]} - [X]")
 
 """DELETE TASKS FROM THE DICTIONARY"""
 def delete_task():
     #PARSE THE TASKS FROM THE DICTIONARY
     print("====TASKS====")
-    for index, value in enumerate(task_dict):
-        if task_dict[value]["status"] == True:
-            print(f"{index + 1}. [X] {value}")
+    while True:
+        for index, value in enumerate(task_dict):
+            if task_dict[value]["status"] == True:
+                print(f"{index + 1}. [x] {task_dict[value]['task']}")
+            else:
+                print(f"{index + 1}. [ ] {task_dict[value]['task']}")
+
+        #ASK USER WHICH TASK TO DELETE
+        task_to_delete = int(input("PLEASE ENTER THE TASK NUMBER TO DELETE: "))
+        del task_dict[task_to_delete]
+        print("TASK DELETED SUCCESSFULLY")
+        
+        del_another = input("DO YOU WANT TO DELETE ANOTHER TASK? (Y/N): ")
+        
+        if del_another.upper() != "Y":
+            break
         else:
-            print(f"{index + 1}. [ ] {value}")
-
-    #ASK USER WHICH TASK TO DELETE
-    task_to_delete = int(input("PLEASE ENTER THE TASK NUMBER TO DELETE: "))
-    delete = task_dict[task_to_delete - 1]
-    del task_dict[delete]
-    print("TASK DELETED SUCCESSFULLY")
-
-                  
+            continue
+    
 """EXIT THE APPLICATION"""
 def exit():
     print("THANK YOU FOR USING THE TO-DO APP/n EXITING...")
@@ -96,6 +110,7 @@ def exit():
 
 """MAIN FUNCTION"""
 def main():
+    clear_cli()
     print("====TO DO LIST====")
     print("1. ADD TASK")
     print("2. VIEW TASKS")
@@ -103,8 +118,6 @@ def main():
     print("4. DELETE TASK")
     print("5. EXIT")
     choice = input("PLEASE ENTER YOUR CHOICE: ")
-    
-    clear_cli()
     
     if choice == "1":
         add_task()
