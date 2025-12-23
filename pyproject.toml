@@ -1,0 +1,12 @@
+[project]
+name = "workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi==0.115.6",
+    "pydantic==2.10.3",
+    "typing-extensions==4.12.2",
+    "uvicorn==0.32.1",
+    "uvicorn-worker==0.2.0",
+]
