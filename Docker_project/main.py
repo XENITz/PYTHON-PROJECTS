@@ -3,7 +3,7 @@ import fastapi
 import uvicorn
 from pydantic import BaseModel
 from typing import Optional
-
+from .database import  engine, Base
 
 app = fastapi.FastAPI()
 
