@@ -1,124 +1,96 @@
-# 🏭 Proyecto: Industrial IoT Gateway API
-**Estado:** Fase 1 (Ingesta y Validación)
-**Rol:** Backend Engineer
+# 🚌 Proyecto: Monterrey Transit Core (MTC)
+**Versión:** 0.1.0 (Alpha)
+**Estado:** Fase 1 - Estructura de Rutas Estáticas
+**Rol:** Backend Architect
 
 ---
 
-### 📋 Contexto del Negocio
-Somos una fábrica manufacturera moderna. Tenemos cientos de sensores y PLCs (Controladores Lógicos Programables) en la planta. Actualmente, los datos están aislados en cada máquina.
+### 📋 Visión del Producto
+Crear una API Open Source de alto rendimiento que sirva como la "verdad absoluta" del transporte público en Monterrey.
+En esta primera etapa, no rastrearemos camiones en vivo. Primero necesitamos construir el **Mapa Digital**: definir qué rutas existen y dónde están sus paradas.
 
-Necesitamos un sistema centralizado (**Gateway**) que reciba lecturas de temperatura, presión y estado en tiempo real a través de HTTP para su posterior análisis.
-
-**Tu misión:** Crear la API que actuará como el punto de entrada seguro, validado y robusto para estos datos.
+**Objetivo del Fin de Semana:**
+Construir una API REST que permita dar de alta Rutas (ej. "Ruta 400") y sus Paradas asociadas, guardando todo en una Base de Datos Relacional y validando que las coordenadas pertenezcan a Nuevo León.
 
 ---
 
-### 🛠️ Requisitos Técnicos (The Stack)
+### 🛠️ Tech Stack (Herramientas)
 * **Lenguaje:** Python 3.10+
-* **Framework:** FastAPI
-* **Servidor:** Uvicorn (ASGI)
-* **Gestión de Entorno:** Virtual Environment (`venv`)
-* **Control de Versiones:** Git (Repo local)
-* **Testing:** cURL / Postman (Prohibido usar navegador para testing)
+* **Core:** FastAPI (Velocidad y Documentación).
+* **Base de Datos:** SQLite (Por simplicidad en Fase 1) -> Migraremos a PostgreSQL en Fase 2.
+* **ORM:** SQLModel o SQLAlchemy (Para manejar la relación "Una Ruta tiene Muchas Paradas").
+* **Validación:** Pydantic (Para asegurar coordenadas reales).
 
 ---
 
-### 🎯 Objetivos de la Fase 1
+### 🏛️ Arquitectura de Datos (Database Schema)
 
-#### 1. Arquitectura Base
-* Inicializar un repositorio de Git (`git init`).
-* Crear un entorno virtual aislado (`python -m venv venv`).
-* Estructura de carpetas profesional:
-  ```text
-  /iot-gateway
-  ├── venv/
-  ├── main.py          # Punto de entrada de la app
-  ├── requirements.txt # Lista de dependencias
-  └── README.md        # Documentación
+Necesitas diseñar 2 tablas principales con una relación **Uno-a-Muchos (1:N)**.
 
-# 🏭 Proyecto: Industrial IoT Gateway API
-**Estado:** Fase 2 (Seguridad y Persistencia)
-**Rol:** Backend & Security Engineer
 
----
 
-### 📋 Contexto del Negocio (Update)
-La Fase 1 fue un éxito, pero Seguridad Corporativa ha detectado una vulnerabilidad crítica: **el endpoint es público**. Cualquier persona en la red WiFi podría enviar datos falsos de temperatura y provocar una parada de emergencia en la fábrica.
+#### 1. Tabla `routes` (Padre)
+Representa la línea de camión.
+* `id` (Integer, PK): Autoincremental.
+* `internal_code` (String, Unique): Ej: "R400-P".
+* `name` (String): Ej: "Ruta 400 - Sector 1 por Pioneros".
+* `status` (Enum): "active", "suspended".
 
-Además, el equipo de Análisis de Datos se queja de que los datos solo aparecen en la consola y desaparecen. Necesitamos guardarlos permanentemente.
-
-**Tu misión:**
-1.  Implementar un sistema de **Autenticación (API Key)** para asegurar que solo las máquinas autorizadas envíen datos.
-2.  Implementar una **Base de Datos SQL** para persistir el histórico de lecturas.
+#### 2. Tabla `stops` (Hijo)
+Representa los puntos geográficos donde sube gente.
+* `id` (Integer, PK): Autoincremental.
+* `route_id` (Integer, FK): **Foreign Key** que conecta con `routes.id`.
+* `name` (String): Ej: "Av. Cuauhtémoc y 5 de Mayo".
+* `latitude` (Float): Coordenada Y.
+* `longitude` (Float): Coordenada X.
+* `sequence` (Integer): Orden de la parada (1, 2, 3...).
 
 ---
 
-### 🛠️ Nuevas Herramientas (Tech Stack)
-* **Base de Datos:** SQLite (Local) usando **SQLAlchemy** (ORM).
-* **Seguridad:** FastAPI `Security` y `HTTPBearer`.
-* **Criptografía:** `Passlib` (Opcional, para hashing futuro).
+### 🎯 Objetivos Técnicos (Sábado & Domingo)
+
+#### Misión 1: El Modelo y el Motor (Backend Logic)
+* Configurar el proyecto FastAPI.
+* Definir los Modelos en SQLAlchemy/SQLModel.
+* **Reto de Ingeniería:** Configurar la relación (`relationship`) para que cuando pidas una Ruta, la DB traiga automáticamente sus paradas.
+
+#### Misión 2: Endpoints Administrativos (CRUD)
+* `POST /routes`: Crear una nueva ruta.
+* `POST /routes/{id}/stops`: Agregar una parada a una ruta existente.
+* `GET /routes/{id}`: Obtener la info de la ruta.
+* `GET /routes/{id}/full-map`: **Endpoint Clave.** Debe devolver un JSON anidado con la ruta y la lista de todas sus paradas ordenadas por secuencia.
+
+#### Misión 3: Validación Geográfica (Business Logic)
+* Monterrey y su área metropolitana están aproximadamente entre:
+    * **Latitud:** 25.30 a 26.00
+    * **Longitud:** -100.80 a -99.80
+* **Regla:** Si intentas crear una parada fuera de este rango, la API debe rechazarla con un `400 Bad Request` y el mensaje: *"Coordinates out of Monterrey Metropolitan Area"*.
 
 ---
 
-### 🎯 Objetivos de la Fase 2
-
-#### 1. La Capa de Persistencia (Base de Datos)
-* No vamos a escribir SQL crudo (`INSERT INTO...`). Usaremos un **ORM (Object Relational Mapper)**.
-* **Instalar:** `pip install sqlalchemy`
-* **Tarea:** Configurar `database.py`.
-* **Modelo DB:** Crear una tabla llamada `readings` con las columnas:
-    * `id` (Integer, Primary Key, Autoincrement)
-    * `machine_id` (String)
-    * `temperature` (Float)
-    * `pressure` (Float)
-    * `timestamp` (DateTime, Default=Now)
-
-#### 2. La Capa de Seguridad (The Bouncer)
-* Las máquinas no tienen usuario y contraseña, usan **API Keys**.
-* **Tarea:** Crear una dependencia de seguridad.
-* La API debe buscar un **Header** específico en cada petición:
-    * `x-api-key: SECTRET-SUPER-SECURE-KEY-123`
-* Si el Header no existe o la clave es incorrecta, rechazar inmediatamente.
-
-#### 3. Conexión End-to-End
-* Modificar el endpoint `POST /sensor-data`:
-    1.  **Validar:** (Ya hecho en Fase 1).
-    2.  **Autenticar:** Verificar la API Key (Nuevo).
-    3.  **Persistir:** Guardar el objeto en el archivo `industrial.db` (Nuevo).
-    4.  **Responder:** Confirmar el guardado.
+### 🤖 Frontend (Delegado a IA)
+*Al terminar el backend, pedirás a Claude/ChatGPT:*
+> "Genera un archivo `index.html` único que use Leaflet.js. Debe consumir mi endpoint local `GET /routes/1/full-map` y pintar las paradas como marcadores azules en un mapa de OpenStreetMap centrado en Monterrey."
 
 ---
 
-### 🛡️ Reglas de Seguridad (Hard Rules)
-1.  **Cero Confianza:** Si una petición llega sin el Header de seguridad, la respuesta debe ser **HTTP 401 Unauthorized** o **HTTP 403 Forbidden**. No debe procesarse nada más.
-2.  **Inyección SQL:** Al usar SQLAlchemy, estamos protegidos, pero asegúrate de nunca concatenar strings en las consultas.
+### ✅ Definition of Done (Criterios de Aceptación)
+
+Para considerar el fin de semana exitoso, debes poder ejecutar este flujo en tu terminal:
+
+1.  **Crear Ruta:**
+    `POST` -> Crea la "Ruta 214". Recibe ID `1`.
+2.  **Agregar Paradas:**
+    `POST` -> Agrega "Parada Tec" (Lat: 25.65, Lon: -100.29) a la Ruta `1`.
+    `POST` -> Agrega "Parada Centro" a la Ruta `1`.
+3.  **Validación:**
+    `POST` -> Intenta agregar una parada en China (Lat: 35.0, Lon: 110.0). -> **Error 400**.
+4.  **Visualización:**
+    Abres el `index.html` generado por IA y ves los puntos pintados sobre el mapa de Monterrey.
 
 ---
 
-### ✅ Criterios de Aceptación (Definition of Done)
+### 📅 Agenda Sugerida
 
-Para aprobar esta fase, debes realizar las siguientes pruebas en tu terminal (`curl`):
-
-1.  [ ] **Prueba de Intruso (Sin Llave):**
-    * Intentar enviar datos sin el Header `x-api-key`.
-    * **Resultado:** Error 401/403.
-2.  [ ] **Prueba de Intruso (Llave Falsa):**
-    * Enviar `x-api-key: hacker-123`.
-    * **Resultado:** Error 401/403.
-3.  [ ] **Prueba de Acceso Autorizado:**
-    * Enviar `x-api-key: SECTRET-SUPER-SECURE-KEY-123` (o la que definas).
-    * **Resultado:** HTTP 200 OK.
-4.  [ ] **Prueba de Persistencia:**
-    * Enviar 3 datos válidos seguidos.
-    * Reiniciar el servidor (apagar y prender `uvicorn`).
-    * Instalar un visor de SQLite (o usar una extensión de VS Code como "SQLite Viewer").
-    * Abrir el archivo `.db` y verificar que las 3 filas sigan ahí.
-
----
-
-### 🔥 Hardcore Mode (Reto Extra)
-*Solo para ingenieros avanzados.*
-
-* **Dependency Injection:** No escribas la lógica de la base de datos dentro de la función del endpoint (`def receive_data`).
-* Crea una función `get_db()` que use `yield` para abrir y cerrar la conexión a la base de datos automáticamente en cada petición.
-* Inyéctala en tu ruta: `def receive_data(data: SensorData, db: Session = Depends(get_db))`.
+* **Sábado (Construction):** Definir modelos DB, crear tablas y endpoints POST.
+* **Domingo (Integration):** Validaciones de latitud/longitud, endpoint GET anidado y prueba visual con el HTML generado.
